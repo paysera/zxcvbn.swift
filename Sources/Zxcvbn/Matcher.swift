@@ -291,7 +291,23 @@ private extension Matcher {
 
             for matcher in dictionaryMatchers {
                 for match in matcher(subbedPassword) {
-                    let token = password[match.i...match.j]
+                    // Cannot use String.Index from subbedPassword on original password
+                    // because they may have different internal encodings (UTF-16 vs UTF-8).
+                    // Convert to character offsets which are encoding-independent.
+                    let iOffset = subbedPassword.distance(from: subbedPassword.startIndex, to: match.i)
+                    let jOffset = subbedPassword.distance(from: subbedPassword.startIndex, to: match.j)
+
+                    // Recreate indices in original password using character offsets
+                    guard
+                        let originalI = password.index(password.startIndex, offsetBy: iOffset, limitedBy: password.endIndex),
+                        let originalJ = password.index(password.startIndex, offsetBy: jOffset, limitedBy: password.endIndex),
+                        originalI <= originalJ
+                    else {
+                        continue
+                    }
+
+                    let token = password[originalI...originalJ]
+
                     // only return the matches that contain an actual substitution
                     if token.lowercased() == match.matchedWord {
                         continue
@@ -313,6 +329,8 @@ private extension Matcher {
                     match.token = String(token)
                     match.sub = matchSub
                     match.subDisplay = subDisplay.joined(separator: ",")
+                    match.i = originalI
+                    match.j = originalJ
                     matches.append(match)
                 }
             }

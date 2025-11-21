@@ -89,4 +89,20 @@ final class ZxcvbnTests: XCTestCase {
         let result2 = zxcvbn.passwordStrength("PSabcdrvst2025$")
         XCTAssertGreaterThan(result2.crackTime, result1.crackTime)
     }
+
+    func testMultipleEmojisInPassword() {
+        let zxcvbn = Zxcvbn()
+        // Regression test: various emoji positions should not cause encoding issues
+        let passwords = [
+            "🔐Password123!",     // Emoji at start
+            "Pass🔐word123!",     // Emoji in middle
+            "Password123!🔐",     // Emoji at end
+            "🔐Pass🔐word🔐",     // Multiple emojis
+        ]
+        for password in passwords {
+            let result = zxcvbn.passwordStrength(password)
+            XCTAssertGreaterThanOrEqual(result.value, 0, "Password '\(password)' should be scored without crashing")
+            XCTAssertNotNil(result.entropy, "Should calculate entropy for '\(password)'")
+        }
+    }
 }
