@@ -74,12 +74,14 @@ public struct Scorer {
         matchSequence.reverse()
 
         func makeBruteforceMatch(_ i: String.Index, _ j: String.Index) -> Match {
-            Match(
+            let token = String(password[i..<j])
+
+            return Match(
                 pattern: "bruteforce",
-                token: String(password[i..<j]),
+                token: token,
                 i: i,
                 j: j,
-                entropy: log2(pow(bruteforceCardinality, Double(password[i..<j].count))),
+                entropy: log2(pow(bruteforceCardinality, Double(token.count))),
                 cardinality: bruteforceCardinality
             )
         }
