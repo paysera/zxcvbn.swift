@@ -105,4 +105,26 @@ final class ZxcvbnTests: XCTestCase {
             XCTAssertNotNil(result.entropy, "Should calculate entropy for '\(password)'")
         }
     }
+
+    func testLongKeyboardZigZagDoesNotOverflow() {
+        let zxcvbn = Zxcvbn()
+        // A continuous zig-zag makes a turn on almost every key; 25+ keys overflowed Int in spatialEntropy.
+        let zigZag = zxcvbn.passwordStrength("qawsedrftgyhujikolplokiju")
+        XCTAssertEqual(zigZag.value, 4)
+        XCTAssertEqual(zigZag.entropy, "64.596")
+        // Shifted keys take the second possibilities loop in spatialEntropy.
+        let shifted = zxcvbn.passwordStrength("QAWSEDRFTGYHUJIKOLPLOKIJUHYGTFRDESWAQWSEDRFTGYHUJIKOLPLOKIJUHYGTFRDESWAQ")
+        XCTAssertEqual(shifted.entropy, "179.923")
+    }
+
+    func testCharactersWithShorterLowercaseFormDoNotCrash() {
+        let zxcvbn = Zxcvbn()
+        // Kelvin sign and capital sharp s get shorter in UTF-8 when lowercased.
+        XCTAssertEqual(zxcvbn.passwordStrength("a\u{212A}bcdefg").entropy, "15.49")
+        XCTAssertEqual(zxcvbn.passwordStrength("pass\u{1E9E}word").entropy, "19.723")
+        XCTAssertEqual(zxcvbn.passwordStrength("\u{212A}\u{212A}\u{212A}").entropy, "7.468")
+        // Dictionary tokens keep the original casing, so uppercase entropy is unchanged.
+        XCTAssertEqual(zxcvbn.passwordStrength("Password1").entropy, "3.0")
+        XCTAssertEqual(zxcvbn.passwordStrength("PassWord!2024").entropy, "14.221")
+    }
 }

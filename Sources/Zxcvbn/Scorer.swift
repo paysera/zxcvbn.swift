@@ -299,28 +299,28 @@ private extension Scorer {
             s = matcher.keypadStartingPositions
             d = Int(matcher.keypadAverageDegree)
         }
-        var possibilities = 0
+        var possibilities = 0.0
         let L = match.token.count
         let t = match.turns ?? 0
         // Estimate the number of possible patterns w/ length L or less with t turns or less.
         for i in 2...L {
             let possibleTurns = min(t, i - 1)
             for j in 1...possibleTurns {
-                possibilities += Int(binom(i - 1, j - 1)) * s * Int(pow(Double(d), Double(j)))
+                possibilities += binom(i - 1, j - 1) * Double(s) * pow(Double(d), Double(j))
             }
         }
-        var entropy = log2(Double(possibilities))
+        var entropy = log2(possibilities)
         // add extra entropy for shifted keys. (% instead of 5, A instead of a.)
         // math is similar to extra entropy from uppercase letters in dictionary matches.
 
         if let shiftedCount = match.shiftedCount, shiftedCount > 0 {
             let S = shiftedCount
             let U = match.token.count - shiftedCount
-            var possibilities = 0
+            var possibilities = 0.0
             for i in 0...min(S, U) {
-                possibilities += Int(binom(S + U, i))
+                possibilities += binom(S + U, i)
             }
-            entropy += log2(Double(possibilities))
+            entropy += log2(possibilities)
         }
 
         return entropy

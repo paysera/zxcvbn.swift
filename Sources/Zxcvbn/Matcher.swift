@@ -46,13 +46,12 @@ public struct MatchResources: @unchecked Sendable {
 
     static func dictionaryMatch(_ password: String, rankedDict: [String: Int]) -> [Match] {
         var result = [Match]()
-        let passwordLower = password.lowercased()
 
         var i = password.startIndex
         while i < password.endIndex {
             var j = i
             while j < password.endIndex {
-                let word = String(passwordLower[i...j])
+                let word = password[i...j].lowercased()
                 if let rank = rankedDict[word] {
                     let match = Match(
                         pattern: "dictionary",
